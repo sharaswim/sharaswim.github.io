@@ -1,0 +1,11 @@
+const fs=require('fs'),path=require('path'),vm=require('vm');
+const dir=__dirname,source=fs.readFileSync(path.resolve(dir,'../assets/index-attendance-v1.js'),'utf8');
+const start=source.indexOf('(0,b.useEffect)(()=>{let e=!0,t=()=>{fetch('),end=source.indexOf('},[N]);',start);
+if(start<0||end<start||source.indexOf('(0,b.useEffect)(()=>{let e=!0,t=()=>{fetch(',start+1)>=0)throw Error('Missing/ambiguous schedule hook');
+const boundary=end+'},[N]);'.length;
+const previous=source.slice(start,boundary);
+if(!previous.includes('window.setInterval(t,1e4)'))throw Error('Unexpected polling implementation');
+const replacement='(0,b.useEffect)(()=>SharaSchedulePollV1(_y,N,terms=>v(e=>e.map(e=>{let n=terms.find(t=>t.day===e.day&&t.time===e.time);return n?{...e,enrolled:Number(n.enrolled),capacity:35}:e}))),[N]);';
+const next=source.slice(0,start)+replacement+source.slice(boundary)+'\n'+fs.readFileSync(path.join(dir,'schedule-polling.js'),'utf8');
+try{new vm.Script(next);}catch(e){console.error(e.message);process.exit(1);}fs.writeFileSync(path.resolve(dir,'../assets/index-speed-v1.js'),next);
+console.log('Built polling-only change, attendance and billing UI unchanged.');
