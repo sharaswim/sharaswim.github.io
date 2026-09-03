@@ -55,14 +55,27 @@ function SharaAttendanceV1({attendance:att}) {
   if(!att||!att.available)return null;
   const h=D.jsx,hs=D.jsxs,m=att.months.find(x=>x.month===chosen)||att.months[0];if(!m)return null;
   const label=x=>new Intl.DateTimeFormat('mk-MK',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(x+'-01T12:00:00Z'));
-  const colors={present:'#096642',absent:'#a02626',excused:'#805000',unmarked:'#52647a',planned:'#52647a',cancelled:'#52647a'};
+  const shortDate=x=>new Intl.DateTimeFormat('mk-MK',{day:'2-digit',month:'short',timeZone:'UTC'}).format(new Date(x+'T12:00:00Z'));
+  const themes={
+    present:{background:'#e8f8ef',border:'#a9dfc1',color:'#087648'},
+    absent:{background:'#fff0f0',border:'#f2c0c0',color:'#a02626'},
+    excused:{background:'#fff7df',border:'#eed594',color:'#805000'},
+    closed:{background:'#edf5f8',border:'#c5dce7',color:'#23506f'},
+    cancelled:{background:'#f1f3f6',border:'#d7dde5',color:'#52647a'},
+    planned:{background:'#f8fafc',border:'#e1e7ee',color:'#52647a'},
+    unmarked:{background:'#f8fafc',border:'#e1e7ee',color:'#52647a'}
+  };
   return hs('section',{'aria-label':'Присуство по месеци',className:'shara-attendance-v1',style:{marginTop:'18px',borderTop:'1px solid #dbe5f0',paddingTop:'16px'},children:[
     h('h4',{children:'Присуство по месеци'}),
     h('select',{'aria-label':'Избери месец за присуство',value:m.month,onChange:event=>setChosen(event.target.value),style:{width:'100%',minHeight:'44px',border:'1px solid #cbd8e7',borderRadius:'9px',padding:'8px',background:'#fff',color:'#0b2a5b'},children:att.months.map(x=>h('option',{value:x.month,children:label(x.month)},x.month))}),
-    hs('p',{style:{lineHeight:1.8},children:['Присутен: ',h('strong',{children:m.counts.present}),' · Отсутен: ',h('strong',{children:m.counts.absent}),h('br',{}),'Оправдано отсуство: ',h('strong',{children:m.excusedUsed+'/1'}),' · Неевидентирани: ',m.counts.unmarked]}),
-    h('div',{style:{maxHeight:'400px',overflow:'auto'},children:m.rows.length?h('ul',{style:{listStyle:'none',padding:0,margin:0},children:m.rows.map(r=>hs('li',{style:{display:'flex',flexWrap:'wrap',gap:'8px',justifyContent:'space-between',padding:'10px 0',borderBottom:'1px solid #e6edf5'},children:[hs('span',{children:[r.date.slice(8,10)+'.'+r.date.slice(5,7)+'.'+r.date.slice(0,4),h('br',{}),h('small',{children:r.term})]}),h('strong',{style:{color:colors[r.status]||'#52647a',fontSize:'13px'},children:r.label})]},r.date+'|'+r.groupId))}):h('p',{children:'Нема закажани тренинзи за овој месец.'})}),
-    h('p',{style:{fontSize:'12px',lineHeight:1.6,color:'#52647a'},children:att.policy}),
-    h('small',{children:'Неевидентирано значи дека клубот сè уште не го означил присуството, не дека детето отсуствувало.'})
+    hs('div',{style:{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'7px',margin:'12px 0'},children:[
+      hs('div',{style:{background:'#e8f8ef',color:'#087648',borderRadius:'9px',padding:'9px',textAlign:'center'},children:[h('strong',{style:{display:'block',fontSize:'18px'},children:m.counts.present}),h('small',{children:'Присутен'})]}),
+      hs('div',{style:{background:'#fff0f0',color:'#a02626',borderRadius:'9px',padding:'9px',textAlign:'center'},children:[h('strong',{style:{display:'block',fontSize:'18px'},children:m.counts.absent}),h('small',{children:'Отсутен'})]}),
+      hs('div',{style:{background:'#fff7df',color:'#805000',borderRadius:'9px',padding:'9px',textAlign:'center'},children:[h('strong',{style:{display:'block',fontSize:'18px'},children:m.excusedUsed+'/1'}),h('small',{children:'Оправдано'})]})
+    ]}),
+    h('div',{style:{maxHeight:'420px',overflow:'auto',paddingRight:'2px'},children:m.rows.length?h('ul',{style:{listStyle:'none',padding:0,margin:0},children:m.rows.map(r=>{const theme=themes[r.status]||themes.unmarked;const shownLabel=r.status==='closed'?'Неработен ден':r.label;return hs('li',{style:{display:'grid',gridTemplateColumns:'minmax(0,1fr) auto',alignItems:'center',gap:'10px',padding:'11px 12px',marginBottom:'7px',border:'1px solid '+theme.border,borderRadius:'10px',background:theme.background},children:[hs('span',{children:[h('strong',{style:{display:'block',fontSize:'14px',color:'#0b2a5b'},children:shortDate(r.date)}),h('small',{style:{display:'block',marginTop:'3px',color:'#52647a'},children:r.term})]}),h('strong',{style:{color:theme.color,fontSize:'12px',background:'#ffffffb8',borderRadius:'999px',padding:'6px 8px',textAlign:'center'},children:shownLabel})]},r.date+'|'+r.groupId)})}):h('p',{children:'Нема закажани тренинзи за овој месец.'})}),
+    h('p',{style:{fontSize:'12px',lineHeight:1.6,color:'#52647a',marginBottom:'5px'},children:att.policy}),
+    h('small',{style:{color:'#52647a'},children:'Празниците се прикажуваат како „Неработен ден“. Неевидентирано не значи дека детето отсуствувало.'})
   ]});
 }
 
